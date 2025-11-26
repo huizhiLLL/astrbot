@@ -1,0 +1,33 @@
+﻿{
+    "only_admin": false,
+    "increase_box": false,
+    "decrease_box": false,
+    "auto_box_groups": [],
+    "box_blacklist": [],
+    "display": {
+        "card": true,
+        "title": true,
+        "sex": true,
+        "birthday": true,
+        "constellation": true,
+        "zodiac": true,
+        "age": true,
+        "phoneNum": true,
+        "eMail": true,
+        "postCode": true,
+        "homeTown": true,
+        "address": true,
+        "kBloodType": true,
+        "makeFriendCareer": true,
+        "remark": true,
+        "labels": true,
+        "unfriendly": true,
+        "is_robot": true,
+        "vip": true,
+        "level": true,
+        "join_time": true,
+        "qqLevel": true,
+        "reg_time": true,
+        "long_nick": true
+    }
+}

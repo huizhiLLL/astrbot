@@ -1,0 +1,8 @@
+﻿{
+  "target_group": "460507071",
+  "server_name": "机械动力",
+  "server_ip": "play.simpfun.cn",
+  "server_port": 35944,
+  "check_interval": 60,
+  "enable_auto_monitor": true
+}

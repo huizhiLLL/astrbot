@@ -1,0 +1,633 @@
+{
+  "enable_audit": {
+    "description": "启用进群审核",
+    "hint": "当用户申请进群时，如果设置了进群关键词bot则会自动审核，没设置也会通知管理员",
+    "type": "bool",
+    "default": true
+  },
+  "admin_audit": {
+    "description": "进群事件仅通知bot管理员",
+    "hint": "如果开启，则进群事件仅通知bot管理员，不再将通知发送在对应群聊",
+    "type": "bool",
+    "default": false
+  },
+  "accept_keywords_list": {
+    "description": "进群关键词数据",
+    "hint": "当用户进群时，会检查其消息是否包含关键词，若包含则会自动批准进群",
+    "invisible": true,
+    "type": "list",
+    "default": []
+  },
+  "enable_black": {
+    "description": "启用主动退群通知",
+    "hint": "当用户主动退群时，向群内通报",
+    "type": "bool",
+    "default": true
+  },
+  "auto_black": {
+    "description": "自动拉黑",
+    "hint": "当用户主动退群时，是否自动拉黑（即添加到拒绝列表）",
+    "type": "bool",
+    "default": false
+  },
+  "reject_ids_list": {
+    "description": "拉黑列表",
+    "hint": "主动退群者将会被拉黑（即被添加到此列表）",
+    "invisible": true,
+    "type": "list",
+    "default": []
+  },
+  "random_ban_time": {
+    "description": "随机禁言配置",
+    "hint": "若禁言命令未指定禁言时长，则使用随机时长，时长范围如下，单位为秒，用~表示范围",
+    "type": "string",
+    "default": "30~300"
+  },
+  "increase": {
+    "description": "进群配置",
+    "hint": "若禁言命令未指定禁言时长，则使用随机时长，时长范围如下",
+    "type": "object",
+    "items": {
+      "ban_time": {
+        "description": "进群禁言时长",
+        "hint": "单位为秒，新成员进群时，bot会自动禁言该成员，并提醒新成员看群公告",
+        "type": "int",
+        "default": 0
+      },
+      "welcome": {
+        "description": "进群欢迎词",
+        "hint": "发给新群友的欢迎词",
+        "type": "string",
+        "default": ""
+      }
+    }
+  },
+  "forbidden": {
+    "description": "违禁词禁言配置",
+    "hint": "若禁言命令未指定禁言时长，则使用随机时长，时长范围如下",
+    "type": "object",
+    "items": {
+      "whitelist": {
+        "description": "检测违禁词的群聊白名单",
+        "hint": "仅检测白名单的群聊，留空则关闭违禁词检测（注意老版本是留空则全部群聊启用，根据用户反馈体验极差，故作更改）",
+        "type": "list",
+        "default": []
+      },
+      "words": {
+        "description": "违禁词",
+        "hint": "包含关键词的消息将被撤回，并禁言发送者",
+        "type": "list",
+        "default": []
+      },
+      "ban_time": {
+        "description": "违禁词禁言时长",
+        "hint": "触发违禁词则禁言发送者，单位：秒，设置为0表示不禁言",
+        "type": "int",
+        "default": 60
+      }
+    }
+  },
+  "spamming": {
+    "description": "刷屏禁言配置",
+    "hint": "用于自动检测群成员连续发言是否构成刷屏行为，并执行禁言操作",
+    "type": "object",
+    "items": {
+      "whitelist": {
+        "description": "刷屏检测群聊白名单",
+        "hint": "仅在这些群里启用刷屏检测，留空则关闭刷屏检测（注意老版本是留空则全部群聊启用，根据用户反馈体验极差，故作更改）",
+        "type": "list",
+        "default": []
+      },
+      "count": {
+        "description": "刷屏判断的消息数量阈值",
+        "hint": "当用户在短时间内连续发送至少该数量的消息时，触发刷屏检测, 填0表示不启用刷屏检测",
+        "type": "int",
+        "default": 0
+      },
+      "interval": {
+        "description": "连续消息的最大允许间隔",
+        "hint": "单位：秒；若连续消息之间的时间间隔都小于该值，则视为刷屏",
+        "type": "float",
+        "default": 0.5
+      },
+      "ban_time": {
+        "description": "刷屏后的禁言时长",
+        "hint": "单位：秒",
+        "type": "int",
+        "default": 600
+      }
+    }
+  },
+  "vote_ban": {
+    "description": "投票禁言配置",
+    "hint": "用于投票禁言",
+    "type": "object",
+    "items": {
+      "ttl": {
+        "description": "投票时长（秒）",
+        "hint": "每轮投票时长到达此值时，开始结算，赞同票多于反对票时，禁言生效",
+        "type": "int",
+        "default": 120
+      },
+      "threshold": {
+        "description": "投票通过所需票数",
+        "hint": "赞同禁言的投票数到达此值时，禁言直接生效",
+        "type": "int",
+        "default": 3
+      }
+    }
+  },
+  "level_threshold": {
+    "description": "高等级成员阈值设置",
+    "hint": "群等级高于此阈值的群成员，将被判定为“高等级成员”",
+    "type": "int",
+    "default": 50
+  },
+  "perms": {
+    "description": "命令权限设置",
+    "hint": "设置各个命令的使用权限",
+    "type": "object",
+    "items": {
+      "set_group_ban": {
+        "description": "禁言",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "set_group_ban_me": {
+        "description": "禁我",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "cancel_group_ban": {
+        "description": "解禁",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "set_group_whole_ban": {
+        "description": "全体禁言",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "cancel_group_whole_ban": {
+        "description": "解除全体禁言",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "set_group_card": {
+        "description": "改名",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "set_group_card_me": {
+        "description": "改我",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "set_group_special_title": {
+        "description": "头衔",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "set_group_special_title_me": {
+        "description": "申请头衔",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "set_group_kick": {
+        "description": "踢了",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "set_group_block": {
+        "description": "拉黑",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "set_group_admin": {
+        "description": "设置管理员",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "群主"
+      },
+      "cancel_group_admin": {
+        "description": "取消管理员",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "群主"
+      },
+      "set_essence_msg": {
+        "description": "设精",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "delete_essence_msg": {
+        "description": "取精",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "get_essence_msg_list": {
+        "description": "群精华",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "delete_msg": {
+        "description": "撤回",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "set_group_portrait": {
+        "description": "设置群头像",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "set_group_name": {
+        "description": "设置群名",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "get_group_member_list": {
+        "description": "群友信息",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "clear_group_member": {
+        "description": "清理群友",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "send_group_notice": {
+        "description": "发布群公告",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "get_group_notice": {
+        "description": "群公告",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "start_curfew": {
+        "description": "开启宵禁",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "stop_curfew": {
+        "description": "关闭宵禁",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "add_accept_keyword": {
+        "description": "添加进群关键词",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "remove_accept_keyword": {
+        "description": "删除进群关键词",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "view_accept_keywords": {
+        "description": "查看进群关键词",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "add_reject_ids": {
+        "description": "添加进群黑名单",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "remove_reject_ids": {
+        "description": "删除进群黑名单",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "view_reject_ids": {
+        "description": "查看进群黑名单",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "agree_add_group": {
+        "description": "批准（进群申请）",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "高等级成员"
+      },
+      "refuse_add_group": {
+        "description": "驳回（进群申请）",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "高等级成员"
+      },
+      "start_vote_mute": {
+        "description": "投票禁言",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "agree_vote_mute": {
+        "description": "赞同禁言",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "disagree_vote_mute": {
+        "description": "反对禁言",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "upload_group_file": {
+        "description": "上传群文件",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "delete_group_file": {
+        "description": "删除群文件",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "管理员"
+      },
+      "view_group_file": {
+        "description": "查看群文件",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      },
+      "ai_set_card": {
+        "description": "取昵称",
+        "type": "string",
+        "options": [
+          "超管",
+          "群主",
+          "管理员",
+          "高等级成员",
+          "成员"
+        ],
+        "default": "成员"
+      }
+    }
+  }
+}

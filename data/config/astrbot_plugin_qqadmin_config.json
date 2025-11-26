@@ -1,0 +1,71 @@
+﻿{
+  "enable_audit": true,
+  "admin_audit": false,
+  "accept_keywords_list": [],
+  "enable_black": false,
+  "auto_black": false,
+  "reject_ids_list": [],
+  "random_ban_time": "10~20",
+  "increase": {
+    "ban_time": 0,
+    "welcome": "你好呀~"
+  },
+  "forbidden": {
+    "whitelist": [],
+    "words": [],
+    "ban_time": 60
+  },
+  "spamming": {
+    "whitelist": [],
+    "count": 0,
+    "interval": 0.5,
+    "ban_time": 600
+  },
+  "vote_ban": {
+    "ttl": 120,
+    "threshold": 3
+  },
+  "level_threshold": 70,
+  "perms": {
+    "set_group_ban": "管理员",
+    "set_group_ban_me": "成员",
+    "cancel_group_ban": "管理员",
+    "set_group_whole_ban": "管理员",
+    "cancel_group_whole_ban": "管理员",
+    "set_group_card": "管理员",
+    "set_group_card_me": "成员",
+    "set_group_special_title": "管理员",
+    "set_group_special_title_me": "成员",
+    "set_group_kick": "管理员",
+    "set_group_block": "管理员",
+    "set_group_admin": "群主",
+    "cancel_group_admin": "群主",
+    "set_essence_msg": "成员",
+    "delete_essence_msg": "成员",
+    "get_essence_msg_list": "成员",
+    "delete_msg": "成员",
+    "set_group_portrait": "管理员",
+    "set_group_name": "管理员",
+    "get_group_member_list": "成员",
+    "clear_group_member": "管理员",
+    "send_group_notice": "管理员",
+    "get_group_notice": "成员",
+    "start_curfew": "管理员",
+    "stop_curfew": "管理员",
+    "add_accept_keyword": "管理员",
+    "remove_accept_keyword": "管理员",
+    "view_accept_keywords": "成员",
+    "add_reject_ids": "管理员",
+    "remove_reject_ids": "管理员",
+    "view_reject_ids": "成员",
+    "agree_add_group": "高等级成员",
+    "refuse_add_group": "高等级成员",
+    "start_vote_mute": "成员",
+    "agree_vote_mute": "成员",
+    "disagree_vote_mute": "成员",
+    "upload_group_file": "成员",
+    "delete_group_file": "管理员",
+    "view_group_file": "成员",
+    "ai_set_card": "成员"
+  }
+}

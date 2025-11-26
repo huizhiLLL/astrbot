@@ -1,0 +1,197 @@
+"""
+Bot实例管理模块
+统一管理bot实例的获取、设置和使用
+"""
+
+from typing import Any
+from astrbot.api import logger
+
+
+class BotManager:
+    """Bot实例管理器 - 统一管理所有bot相关操作"""
+
+    def __init__(self, config_manager):
+        self.config_manager = config_manager
+        self._bot_instances = {}  # 改为字典：{platform_id: bot_instance}
+        self._bot_qq_ids = []  # 支持多个QQ号
+        self._context = None
+        self._is_initialized = False
+        self._default_platform = "default"  # 默认平台
+
+    def set_context(self, context):
+        """设置AstrBot上下文"""
+        self._context = context
+
+    def set_bot_instance(self, bot_instance, platform_id=None):
+        """设置bot实例，支持指定平台ID"""
+        if not platform_id:
+            platform_id = self._get_platform_id_from_instance(bot_instance)
+
+        if bot_instance and platform_id:
+            self._bot_instances[platform_id] = bot_instance
+            # 自动提取QQ号
+            bot_qq_id = self._extract_bot_qq_id(bot_instance)
+            if bot_qq_id and bot_qq_id not in self._bot_qq_ids:
+                self._bot_qq_ids.append(str(bot_qq_id))
+
+    def set_bot_qq_ids(self, bot_qq_ids):
+        """设置bot QQ号（支持单个QQ号或QQ号列表）"""
+        if isinstance(bot_qq_ids, list):
+            self._bot_qq_ids = [str(qq) for qq in bot_qq_ids if qq]
+            if self._bot_qq_ids:
+                self._bot_qq_id = self._bot_qq_ids[0]  # 保持向后兼容
+        elif bot_qq_ids:
+            self._bot_qq_id = str(bot_qq_ids)
+            self._bot_qq_ids = [str(bot_qq_ids)]
+
+    def get_bot_instance(self, platform_id=None):
+        """获取指定平台的bot实例，如果不指定则返回第一个可用的实例"""
+        if platform_id:
+            # 如果指定了平台ID，尝试获取
+            instance = self._bot_instances.get(platform_id)
+            if instance:
+                return instance
+
+            # 如果指定的平台不存在，记录警告并尝试回退
+            if self._bot_instances:
+                first_platform = list(self._bot_instances.keys())[0]
+                logger.warning(
+                    f"平台 '{platform_id}' 不存在，回退到第一个可用平台 '{first_platform}'"
+                )
+                return self._bot_instances[first_platform]
+
+            # 没有任何平台可用
+            logger.error(f"平台 '{platform_id}' 不存在，且没有任何可用的bot实例")
+            return None
+
+        # 没有指定平台ID，返回第一个可用的实例
+        if self._bot_instances:
+            first_platform = list(self._bot_instances.keys())[0]
+            if len(self._bot_instances) > 1:
+                logger.debug(
+                    f"未指定平台，使用第一个可用平台 '{first_platform}' "
+                    f"(共有 {len(self._bot_instances)} 个平台: {list(self._bot_instances.keys())})"
+                )
+            return self._bot_instances[first_platform]
+
+        # 没有任何平台可用
+        logger.error("没有任何可用的bot实例")
+        return None
+
+    def has_bot_instance(self) -> bool:
+        """检查是否有可用的bot实例"""
+        return bool(self._bot_instances)
+
+    def has_bot_qq_id(self) -> bool:
+        """检查是否有配置的bot QQ号"""
+        return bool(self._bot_qq_ids)
+
+    def is_ready_for_auto_analysis(self) -> bool:
+        """检查是否准备好进行自动分析"""
+        return self.has_bot_instance() and self.has_bot_qq_id()
+
+    def _get_platform_id_from_instance(self, bot_instance):
+        """从bot实例获取平台ID"""
+        if hasattr(bot_instance, "platform") and isinstance(bot_instance.platform, str):
+            return bot_instance.platform
+        return self._default_platform
+
+    async def auto_discover_bot_instances(self):
+        """自动发现所有可用的bot实例"""
+        if not self._context or not hasattr(self._context, "platform_manager"):
+            return {}
+
+        platforms = getattr(self._context.platform_manager, "platform_insts", [])
+        discovered = {}
+
+        for platform in platforms:
+            # 获取bot实例
+            bot_client = None
+            if hasattr(platform, "get_client"):
+                bot_client = platform.get_client()
+            elif hasattr(platform, "bot"):
+                bot_client = platform.bot
+
+            if (
+                bot_client
+                and hasattr(platform, "metadata")
+                and hasattr(platform.metadata, "id")
+            ):
+                platform_id = platform.metadata.id
+                self.set_bot_instance(bot_client, platform_id)
+                discovered[platform_id] = bot_client
+
+        return discovered
+
+    async def initialize_from_config(self):
+        """从配置初始化bot管理器"""
+        # 设置配置的bot QQ号列表
+        bot_qq_ids = self.config_manager.get_bot_qq_ids()
+        if bot_qq_ids:
+            self.set_bot_qq_ids(bot_qq_ids)
+
+        # 自动发现所有bot实例
+        discovered = await self.auto_discover_bot_instances()
+        self._is_initialized = True
+
+        # 返回发现的实例字典
+        return discovered
+
+    def get_status_info(self) -> dict[str, Any]:
+        """获取bot管理器状态信息"""
+        return {
+            "has_bot_instance": self.has_bot_instance(),
+            "has_bot_qq_id": self.has_bot_qq_id(),
+            "bot_qq_ids": self._bot_qq_ids,
+            "platform_count": len(self._bot_instances),
+            "platforms": list(self._bot_instances.keys()),
+            "ready_for_auto_analysis": self.is_ready_for_auto_analysis(),
+        }
+
+    def update_from_event(self, event):
+        """从事件更新bot实例（用于手动命令）"""
+        if hasattr(event, "bot") and event.bot:
+            # 从事件中获取平台ID
+            platform_id = None
+            if hasattr(event, "platform") and isinstance(event.platform, str):
+                platform_id = event.platform
+            elif hasattr(event, "metadata") and hasattr(event.metadata, "id"):
+                platform_id = event.metadata.id
+
+            self.set_bot_instance(event.bot, platform_id)
+            # 每次都尝试从bot实例提取QQ号
+            bot_qq_id = self._extract_bot_qq_id(event.bot)
+            if bot_qq_id:
+                # 将单个QQ号转换为列表，保持统一处理
+                self.set_bot_qq_ids([bot_qq_id])
+            else:
+                # 如果bot实例没有QQ号，尝试使用配置的QQ号列表
+                config_qq_ids = self.config_manager.get_bot_qq_ids()
+                if config_qq_ids:
+                    self.set_bot_qq_ids(config_qq_ids)
+            return True
+        return False
+
+    def _extract_bot_qq_id(self, bot_instance):
+        """从bot实例中提取QQ号（单个）"""
+        # 尝试多种方式获取bot QQ号
+        if hasattr(bot_instance, "self_id") and bot_instance.self_id:
+            return str(bot_instance.self_id)
+        elif hasattr(bot_instance, "qq") and bot_instance.qq:
+            return str(bot_instance.qq)
+        elif hasattr(bot_instance, "user_id") and bot_instance.user_id:
+            return str(bot_instance.user_id)
+        return None
+
+    def validate_for_message_fetching(self, group_id: str) -> bool:
+        """验证是否可以进行消息获取"""
+        return self.has_bot_instance() and bool(group_id)
+
+    def should_filter_bot_message(self, sender_id: str) -> bool:
+        """判断是否应该过滤bot自己的消息（支持多个QQ号）"""
+        if not self._bot_qq_ids:
+            return False
+
+        sender_id_str = str(sender_id)
+        # 检查是否在QQ号列表中
+        return sender_id_str in self._bot_qq_ids
